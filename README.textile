@@ -1,10 +1,37 @@
-= son_of_a_batch
+h1. son_of_a_batch
 
 Smelt from a plentiferous gallimaufry of requests an agglomerated bale of responses. With, y'know, concurrency and all that.
 
 Install this as a shim to allow batch requests against a remote API.
 
+h2. Usage
+
+Start a test server:
+
+<pre>
+$ ruby app/endpoints/sleepy.rb -sv -p 9002 # an example endpoint that sleeps a given amount of time before responding.
+[54941:INFO] 2011-04-23 17:22:37 :: Starting server on 0.0.0.0:9002 in development mode. Watch out for stones.
+
+$ curl 'http://localhost:9002?delay=2.2'
+{"start":1303597564.663358,"delay":2.2,"actual":2.2001771926879883}
+</pre>
+
+Start the son_of_a_batch server:
+
+<pre>
+$ ruby app/endpoints/sleepy.rb -sv -p 9002 # an example endpoint that sleeps a given amount of time before responding.
+[54941:INFO] 2011-04-23 17:22:37 :: Starting server on 0.0.0.0:9002 in development mode. Watch out for stones.
+
+$ curl 'http://localhost:9002?delay=2.2'
+{"start":1303597564.663358,"delay":2.2,"actual":2.2001771926879883}
+</pre>
+
 h3. Colophon
+
+Uses
+
+* Goliath -- fast asynchronous API library
+* Gorillib -- only the lightest of weight helpers plucked from active_support and friends, with nothing obtrusive required by default.
 
 h4. Credits
 

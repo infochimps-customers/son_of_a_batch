@@ -37,11 +37,17 @@ class SonOfABatch < Goliath::API
   MAX_TARGET_QUERIES = 100
   TIMEOUT            = 30
 
-  QUERIES = [1.0, 1.5, 2.0, 0.5, 1.0, 0.25]
+  QUERIES = [ 1.0, 1.5, 2.0, 0.5, 1.0, 0.25 ]
 
   def recent_latency
     Goliath::Plugin::Latency.recent_latency if defined?(Goliath::Plugin::Latency)
   end
+
+  SEP = "\n"
+  BATCH_OPEN    = ["{", SEP].join
+  RESULTS_OPEN  = %Q<"results":\{#{SEP}>
+  RESULTS_CLOSE = %Q<#{SEP}\}>
+  BATCH_CLOSE   = [SEP, "}"].join
 
   def response(env)
     case env['PATH_INFO']
@@ -54,25 +60,43 @@ class SonOfABatch < Goliath::API
     start = Time.now.utc.to_f
     env.logger.debug "iterator #{start}: starting target requests"
 
-    EM::Synchrony::Iterator.new(QUERIES.each_with_index.to_a, TARGET_CONCURRENCY).each(
-      proc{|(delay, idx), iter|
+    EM.synchrony do
 
-        env.logger.debug "iterator #{start} [#{delay}, #{idx}]: requesting target"
-        c = EM::HttpRequest.new("#{TARGET_URL_BASE}?delay=#{delay}").aget
-        env.logger.debug "iterator #{start} [#{delay}, #{idx}]: requested target"
+      saved_responses   = {}
+      seen_first_result = false
 
-        c.callback do
-          env.chunked_stream_send(c.response+"\n")
-          env.logger.debug "iterator #{start} [#{delay}, #{idx}]: target iter.next"
-          iter.next
-        end
+      EM.next_tick{ env.chunked_stream_send( [BATCH_OPEN, RESULTS_OPEN].join ) }
 
-        env.logger.debug "iterator #{start} [#{delay}, #{idx}]: end target request iter"
+      EM::Synchrony::Iterator.new(QUERIES.each_with_index.to_a, TARGET_CONCURRENCY).each(
+        proc{|(delay, idx), iter|
+          env.logger.debug "iterator #{start} [#{delay}, #{idx}]: requesting target"
+          c = EM::HttpRequest.new("#{TARGET_URL_BASE}?delay=#{delay}").aget
+          env.logger.debug "iterator #{start} [#{delay}, #{idx}]: requested target"
 
-      }, proc{|responses|
-        env.logger.debug "iterator #{start}: closing stream"
-        env.chunked_stream_close
-      })
+          c.callback do
+            saved_responses[idx] = [c.response_header.http_status, c.response_header.to_hash, c.response]
+            body = JSON.generate({ :status => c.response_header.http_status, :body => c.response })
+            env.chunked_stream_send([ (seen_first_result ? "," : ""), %Q{"#{idx}":}, body, SEP ].join)
+            env.logger.debug "iterator #{start} [#{delay}, #{idx}]: target iter.next"
+            seen_first_result ||= true
+            iter.next
+          end
+
+          env.logger.debug "iterator #{start} [#{delay}, #{idx}]: end target request iter"
+
+        }, proc{
+
+          # p saved_responses
+          # env.chunked_stream_send JSON.pretty_generate(saved_responses)
+          # env.chunked_stream_send %Q<"_done":{"completed_in":#{Time.now.utc.to_f - start}}>
+          env.chunked_stream_send [RESULTS_CLOSE, ",", SEP, %Q{"errors":{}}].join
+          env.chunked_stream_send BATCH_CLOSE
+          env.logger.debug "iterator #{start}: closing stream"
+          env.chunked_stream_close
+        })
+
+      env.logger.debug "timer #{start}: end of synchrony block"
+    end
 
     # results = { :results => {} , :errors => {} }
     # data.responses.each do |resp_type, resp_hsh|
@@ -83,9 +107,9 @@ class SonOfABatch < Goliath::API
     #   end
     # end
 
-    env.logger.debug "timer #{start}: after fetch"
+    env.logger.debug "timer #{start}: after constructing response"
 
-    chunked_streaming_response 200, {'X-Responder' => self.class.to_s }
+    chunked_streaming_response(200, {'X-Responder' => self.class.to_s })
   end
 end
 
