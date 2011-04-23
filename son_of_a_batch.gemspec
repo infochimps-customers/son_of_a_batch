@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
     "lib/boot.rb",
     "lib/son_of_a_batch.rb",
     "public/stylesheets/style.css",
+    "son_of_a_batch.gemspec",
     "son_of_a_batch.rb",
     "spec/son_of_a_batch_spec.rb",
     "spec/spec_helper.rb"
