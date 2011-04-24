@@ -37,6 +37,7 @@ doc
 pkg
 .yardoc
 *private.yaml
+*private.rb
 .bundle
 db/*.sqlite3
 log/*.log*
