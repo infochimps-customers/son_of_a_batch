@@ -4,7 +4,7 @@ gem 'goliath',         :git => 'https://github.com/postrank-labs/goliath.git'
 gem 'em-synchrony',    :git => 'https://github.com/igrigorik/em-synchrony.git'
 gem 'em-http-request', :git => 'https://github.com/igrigorik/em-http-request.git'
 gem 'yajl-ruby',       "~> 0.8.2"
-gem 'gorillib',        "~> 0.0.4"
+gem 'gorillib',        "~> 0.0.5"
 
 gem 'rack-respond_to'
 gem 'rack-abstract-format'

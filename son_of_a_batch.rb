@@ -21,6 +21,9 @@ require 'goliath/plugins/latency'
 require 'em-synchrony/em-http'
 require 'rack/abstract_format'
 
+# def h(text); Rack::Utils.escape_html text end
+
+
 class SonOfABatch < Goliath::API
   use Goliath::Rack::Params             # parse query & body params
   use Goliath::Rack::Formatters::JSON   # JSON output formatter

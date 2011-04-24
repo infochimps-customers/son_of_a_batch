@@ -13,7 +13,7 @@ class Sleepy < Goliath::API
   use Goliath::Rack::Formatters::JSON   # JSON output formatter
   use Goliath::Rack::Render             # auto-negotiate response format
   use Goliath::Rack::ValidationError    # catch and render validation errors
-  use Goliath::Rack::Validation::NumericRange, {:key => 'delay', :max => 15.0, :default => 1.5, :as => Float}
+  use Goliath::Rack::Validation::NumericRange, {:key => 'delay', :default => 2.5, :max => 15.0, :min => 0.0, :as => Float}
   use Rack::AbstractFormat, 'application/json'
 
   def response(env)

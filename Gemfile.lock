@@ -24,7 +24,7 @@ GEM
       eventmachine
     eventmachine (1.0.0.beta.3)
     git (1.2.5)
-    gorillib (0.0.4)
+    gorillib (0.0.5)
     http_parser.rb (0.5.1)
     jeweler (1.5.2)
       bundler (~> 1.0.0)
@@ -55,7 +55,7 @@ DEPENDENCIES
   bundler (~> 1.0.12)
   em-http-request!
   em-synchrony!
-  gorillib (~> 0.0.4)
+  gorillib (~> 0.0.5)
   jeweler (~> 1.5.2)
   rack-abstract-format
   rack-respond_to
