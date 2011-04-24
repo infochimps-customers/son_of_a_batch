@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{son_of_a_batch}
-  s.version = "0.0.1"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Philip (flip) Kromer for Infochimps"]
@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
     "README.textile",
     "Rakefile",
     "VERSION",
+    "app/endpoints/sleepy.rb",
     "app/views/debug.haml",
     "app/views/layout.haml",
     "app/views/root.haml",
