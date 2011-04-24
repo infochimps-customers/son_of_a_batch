@@ -10,6 +10,7 @@ $:<< './lib'
 #
 
 require 'boot'
+require 'gorillib'
 require 'tilt'
 require 'yajl/json_gem'
 
@@ -28,28 +29,17 @@ class SonOfABatch < Goliath::API
   include Goliath::Rack::Templates      # render templated files from ./views
   use(Rack::Static,                     # render static files from ./public
     :root => Goliath::Application.root_path("public"), :urls => ["/favicon.ico", '/stylesheets', '/javascripts', '/images'])
-
   # plugin Goliath::Plugin::Latency       # ask eventmachine reactor to track its latency
 
-  TARGET_URL_BASE = "http://localhost:9002/meta/http/sleepy.json"
-
-  TARGET_CONCURRENCY = 10
-  MAX_TARGET_QUERIES = 100
-  TIMEOUT            = 30
-
-  QUERIES = [ 1.0, 1.5, 2.0, 0.5, 1.0, 0.25 ]
+  TARGET_CONCURRENCY   = 10
+  QUERIES = [ 1.0, 60.5, 2.5, 0.5, 1.0, 0.25, 1.0, 60.5, 2.5, 0.5, 1.0, 0.25 ]
 
   def recent_latency
     Goliath::Plugin::Latency.recent_latency if defined?(Goliath::Plugin::Latency)
   end
 
-  SEP = "\n"
-  BATCH_OPEN    = ["{", SEP].join
-  RESULTS_OPEN  = %Q<"results":\{#{SEP}>
-  RESULTS_CLOSE = %Q<#{SEP}\}>
-  BATCH_CLOSE   = [SEP, "}"].join
-
   def response(env)
+    batch_id = "%7.04f" % (env[:start_time].to_f - 100*(env[:start_time].to_f.to_i / 100))
     case env['PATH_INFO']
     when '/'         then return [200, {}, haml(:root)]
     when '/debug'    then return [200, {}, haml(:debug)]
@@ -57,60 +47,107 @@ class SonOfABatch < Goliath::API
     else                  raise Goliath::Validation::NotFoundError
     end
 
-    start = Time.now.utc.to_f
-    env.logger.debug "iterator #{start}: starting target requests"
-
-    EM.synchrony do
-
-      saved_responses   = {}
-      seen_first_result = false
-
-      EM.next_tick{ env.chunked_stream_send( [BATCH_OPEN, RESULTS_OPEN].join ) }
-
-      EM::Synchrony::Iterator.new(QUERIES.each_with_index.to_a, TARGET_CONCURRENCY).each(
-        proc{|(delay, idx), iter|
-          env.logger.debug "iterator #{start} [#{delay}, #{idx}]: requesting target"
-          c = EM::HttpRequest.new("#{TARGET_URL_BASE}?delay=#{delay}").aget
-          env.logger.debug "iterator #{start} [#{delay}, #{idx}]: requested target"
-
-          c.callback do
-            saved_responses[idx] = [c.response_header.http_status, c.response_header.to_hash, c.response]
-            body = JSON.generate({ :status => c.response_header.http_status, :body => c.response })
-            env.chunked_stream_send([ (seen_first_result ? "," : ""), %Q{"#{idx}":}, body, SEP ].join)
-            env.logger.debug "iterator #{start} [#{delay}, #{idx}]: target iter.next"
-            seen_first_result ||= true
-            iter.next
-          end
-
-          env.logger.debug "iterator #{start} [#{delay}, #{idx}]: end target request iter"
-
-        }, proc{
-
-          # p saved_responses
-          # env.chunked_stream_send JSON.pretty_generate(saved_responses)
-          # env.chunked_stream_send %Q<"_done":{"completed_in":#{Time.now.utc.to_f - start}}>
-          env.chunked_stream_send [RESULTS_CLOSE, ",", SEP, %Q{"errors":{}}].join
-          env.chunked_stream_send BATCH_CLOSE
-          env.logger.debug "iterator #{start}: closing stream"
-          env.chunked_stream_close
-        })
-
-      env.logger.debug "timer #{start}: end of synchrony block"
-    end
-
-    # results = { :results => {} , :errors => {} }
-    # data.responses.each do |resp_type, resp_hsh|
-    #   resp_type = (resp_type == :callbacks) ? :results : :errors
-    #   resp_hsh.each do |req,resp|
-    #     parsed = JSON.parse(resp.response) rescue resp.response
-    #     results[:results][req] = [resp.response_header.http_status, resp.response_header.to_hash, parsed]
-    #   end
-    # end
-
-    env.logger.debug "timer #{start}: after constructing response"
-
+    env.logger.debug "req #{object_id} @#{batch_id}: constructing request group"
+    BatchIterator.new(env, batch_id, QUERIES.each_with_index.to_a, TARGET_CONCURRENCY).perform
+    env.logger.debug "req #{object_id} @#{batch_id}: constructed request group"
     chunked_streaming_response(200, {'X-Responder' => self.class.to_s })
   end
+end
+
+
+class BatchIterator < EM::Synchrony::Iterator
+
+  TARGET_URL_BASE = "http://localhost:9002/meta/http/sleepy.json"
+  HTTP_REQUEST_OPTIONS = { :connect_timeout => 1.0, :inactivity_timeout => 1.2 }
+
+  attr_reader :requests, :responses
+
+  def initialize env, batch_id, *args
+    @env = env
+    @batch_id = batch_id
+    @requests = []
+    @responses = {:results => {}, :errors => {}}
+    @seen_first_result = false
+    super *args
+  end
+
+  def handle_result req_id, req
+    @responses[:results][req_id] = { :status => req.response_header.http_status, :body => req.response }
+    sep  = @seen_first_result ? ",#{SEP}" : ""
+    key  = %Q{"#{req_id}":}
+    body = JSON.generate(@responses[:results][req_id])
+    @env.chunked_stream_send([ sep, key, body ].join)
+  end
+
+  def handle_error req_id, req
+    err = req.error.blank? ? 'request error' : req.error
+    @responses[:errors][req_id] = { :error => err }
+    p req.error
+  end
+
+  def perform
+    EM.synchrony do
+      @env.logger.debug "req #{object_id} @#{@batch_id}:   synchrony block start"
+
+    EM.next_tick{ beg_batch ; beg_results_block }
+    each(
+      proc{|(delay, req_id), iter|
+        @env.logger.debug "req #{object_id} @#{@batch_id}:     request [#{req_id}, #{delay}]\tconstructing"
+        req = EM::HttpRequest.new(TARGET_URL_BASE, HTTP_REQUEST_OPTIONS).aget(:query => { :delay => delay })
+
+        req.callback do
+          @env.logger.debug "req #{object_id} @#{@batch_id}:     request [#{req_id}, #{delay}]:\t  callback"
+          handle_result(req_id, req)
+          @seen_first_result ||= true
+          @env.logger.debug "req #{object_id} @#{@batch_id}:     request [#{req_id}, #{delay}]:\t  iter.next"
+          iter.next
+        end
+
+        req.errback do
+          @env.logger.debug "req #{object_id} @#{@batch_id}:     request [#{req_id}, #{delay}]:\t  errback"
+          handle_error(req_id, req)
+          @env.logger.debug "req #{object_id} @#{@batch_id}:     request [#{req_id}, #{delay}]:\t  iter.next"
+          iter.next
+        end
+
+        @env.logger.debug "req #{object_id} @#{@batch_id}:     request [#{req_id}, #{delay}]\tconstructed"
+
+      }, proc{
+        end_results_block
+        @env.chunked_stream_send [",", SEP].join
+        @env.chunked_stream_send JSON.generate({:errors => responses[:errors], :completed_in => (Time.now.utc.to_f - @env[:start_time].to_f)})[1..-2]
+        end_batch
+        @env.logger.debug "req #{object_id} @#{@batch_id}:   closing stream"
+        @env.chunked_stream_close
+      }
+      )
+      @env.logger.debug "req #{object_id} @#{@batch_id}: synchrony block end"
+    end
+  end
+
+
+  SEP = "\n"
+  BEG_BATCH    = "{"
+  BEG_RESULTS  = %Q<"results":\{>
+  END_RESULTS = "}"
+  END_BATCH   = "}"
+
+  def beg_batch
+    @env.chunked_stream_send( [BEG_BATCH, SEP].join )
+  end
+
+  def beg_results_block
+    @env.chunked_stream_send( [BEG_RESULTS, SEP].join )
+  end
+
+  def end_results_block
+    @env.chunked_stream_send [SEP, END_RESULTS].join
+  end
+
+  def end_batch
+    @env.chunked_stream_send( [SEP, END_BATCH].join )
+  end
+
 end
 
 

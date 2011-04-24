@@ -4,6 +4,17 @@ Smelt from a plentiferous gallimaufry of requests an agglomerated bale of respon
 
 Install this as a shim to allow batch requests against a remote API.
 
+h2.
+
+
+h4. Results vs Errors
+
+Note that a request may do any of the following:
+
+* The request might *complete* and be *successful* (eg @200 OK@). Each of these will be in the "results" block, with its status code set appropriately.
+* The request might *complete* but be *unsuccessful* (eg @404 Not Found@). These are no different to son_of_a_batch, so each of them will also be in the "results" block with its status code set appropriately.
+* The request might *not complete*. These will be in the "errors" block.
+
 h2. Usage
 
 Start a test server:
