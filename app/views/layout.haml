@@ -1,4 +1,4 @@
-- title ||= 'Goliath'
+- title = title || config[:app_name].humanize || 'Goliath'
 !!! 5
 %html
   %head
@@ -21,7 +21,7 @@
               <a href="/">Home</a>
             %li.item
               <a href="/debug">Debug</a>
-            %li &nbsp;
+            %li  &nbsp;
 
     #main.wrapper{ :role => 'main' }
       != yield
@@ -29,7 +29,7 @@
     #footer-container
       %footer.wrapper
         .copyright
-          %p Copyright &copy; #{Time.now.strftime("%Y")}
+          %p Copyright © #{Time.now.strftime("%Y")}
 
     %script{ :src => "http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js", :type => "text/javascript" }/
     :javascript

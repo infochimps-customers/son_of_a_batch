@@ -155,7 +155,7 @@ aside{
   min-height: 550px;
 }
 
-#main p{
+#main p, #main blockquote{
   font:16px/26px Helvetica, Helvetica Neue, Arial;
   width:620px;
   text-shadow:none;
@@ -264,6 +264,12 @@ table.vertical tr:last-child {
   border: none;
 }
 
+blockquote {
+ margin-left: 1em;
+ margin-right: 1em;
+ border-left: 0.25em #eee solid;
+ padding: 0.5em
+}
 
 
 @media all and (orientation:portrait) {

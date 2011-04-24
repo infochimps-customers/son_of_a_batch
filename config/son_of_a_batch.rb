@@ -4,9 +4,9 @@
 # @config/son_of_a_batch-private.rb@ and enter your keys, etc.
 #
 
-p ['loading config', __FILE__]
-
 import 'son_of_a_batch-private'
+
+config[:app_name] = 'son_of_a_batch'
 
 config[:template] = {
   :layout_engine => :haml,
@@ -17,3 +17,6 @@ config[:template_engines] = {
     :escape_html   => true
   }
 }
+
+
+p config

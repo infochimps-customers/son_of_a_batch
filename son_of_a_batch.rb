@@ -11,6 +11,7 @@ $:<< './lib'
 
 require 'boot'
 require 'gorillib'
+require 'gorillib/string/human'
 require 'tilt'
 require 'yajl/json_gem'
 
@@ -24,15 +25,15 @@ class SonOfABatch < Goliath::API
   use Goliath::Rack::Params             # parse query & body params
   use Goliath::Rack::Formatters::JSON   # JSON output formatter
   use Goliath::Rack::Render             # auto-negotiate response format
-  use Rack::AbstractFormat, 'application/json'
-
-  include Goliath::Rack::Templates      # render templated files from ./views
   use(Rack::Static,                     # render static files from ./public
     :root => Goliath::Application.root_path("public"), :urls => ["/favicon.ico", '/stylesheets', '/javascripts', '/images'])
+  use Rack::AbstractFormat, 'text/html'
+
+  include Goliath::Rack::Templates      # render templated files from ./views
   # plugin Goliath::Plugin::Latency       # ask eventmachine reactor to track its latency
 
-  TARGET_CONCURRENCY   = 10
-  QUERIES = [ 1.0, 60.5, 2.5, 0.5, 1.0, 0.25, 1.0, 60.5, 2.5, 0.5, 1.0, 0.25 ]
+  QUERIES = [ 1.0, 14.5, 2.5, 0.5, 4.0, 0.25, 5.0, 9.5, 2.5, 0.5, 1.0, 0.25 ]
+  TARGET_CONCURRENCY   = QUERIES.length
 
   def recent_latency
     Goliath::Plugin::Latency.recent_latency if defined?(Goliath::Plugin::Latency)
@@ -43,6 +44,7 @@ class SonOfABatch < Goliath::API
     case env['PATH_INFO']
     when '/'         then return [200, {}, haml(:root)]
     when '/debug'    then return [200, {}, haml(:debug)]
+    when '/joke'     then return [200, {}, haml(:joke)]
     when '/get'      then :pass
     else                  raise Goliath::Validation::NotFoundError
     end
@@ -50,7 +52,7 @@ class SonOfABatch < Goliath::API
     env.logger.debug "req #{object_id} @#{batch_id}: constructing request group"
     BatchIterator.new(env, batch_id, QUERIES.each_with_index.to_a, TARGET_CONCURRENCY).perform
     env.logger.debug "req #{object_id} @#{batch_id}: constructed request group"
-    chunked_streaming_response(200, {'X-Responder' => self.class.to_s })
+    chunked_streaming_response(200, {'X-Responder' => self.class.to_s, })
   end
 end
 
@@ -58,7 +60,7 @@ end
 class BatchIterator < EM::Synchrony::Iterator
 
   TARGET_URL_BASE = "http://localhost:9002/meta/http/sleepy.json"
-  HTTP_REQUEST_OPTIONS = { :connect_timeout => 1.0, :inactivity_timeout => 1.2 }
+  HTTP_REQUEST_OPTIONS = { :connect_timeout => 1.0, :inactivity_timeout => 1.4 }
 
   attr_reader :requests, :responses
 
