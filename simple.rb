@@ -40,11 +40,11 @@ class BatchIterator < EM::Synchrony::Iterator
   end
 
   def handle_result req_id, req
-    @env.chunked_stream_send([req_id, "\t", req.response, "\n"].join)
+    @env.chunked_stream_send([req_id, "\t", req.response_header.http_status, "\t", req.response, "\n"].join)
   end
 
   def handle_error req_id, req
-    @env.chunked_stream_send([req_id, "\t", %Q{{"error":'#{req.error}'}}, "\n"].join)
+    @env.chunked_stream_send([req_id, "\t", "", "\t", %Q{{"error":'#{req.error}'}}, "\n"].join)
   end
 
   def logline indent, seg
@@ -62,12 +62,9 @@ class BatchIterator < EM::Synchrony::Iterator
           req.errback{  handle_error(req_id, req)  ; iter.next ; logline(4, "request #{[req_id, delay]}\terror")   }
 
           logline 4, "request #{[req_id, delay]}\tconstructed"
-
         }, proc{
-          EM.next_tick do
-            logline 2, "stream closing"
-            @env.chunked_stream_close
-            end
+          logline 2, "stream closing"
+          @env.chunked_stream_close
         }
         )
       logline 0, "synchrony end"
