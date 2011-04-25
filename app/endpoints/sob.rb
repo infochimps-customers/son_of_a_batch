@@ -2,12 +2,14 @@
 $:<< './lib'
 
 require 'boot'
-require 'goliath'
-require 'em-synchrony/em-http'
-require 'gorillib'
 require 'yajl/json_gem'
 require 'addressable/uri'
 require 'set'
+require 'goliath'
+require 'em-synchrony/em-http'
+require 'gorillib'
+require 'gorillib/numeric/clamp'
+require 'gorillib/hash/slice'
 
 require 'son_of_a_batch'
 
@@ -44,8 +46,8 @@ class Sob < Goliath::API
   use Goliath::Rack::Params             # parse query & body params
   include Goliath::Validation
 
-  JsonBatchIterator.send(:include, LoggingIterator)
-  TsvBatchIterator.send(:include, LoggingIterator)
+  JsonBatchIterator.send(:include, SonOfABatch::LoggingIterator)
+  TsvBatchIterator.send(:include,  SonOfABatch::LoggingIterator)
 
   HOST_WHITELIST = %w[
     api.infochimps.com localhost 127.0.0.1
@@ -70,12 +72,12 @@ protected
 
   # make the given URL string safe.
   # TODO: be even more of a dick.
-  def normalize_query q
-    q = Addressable::URI.parse(q).normalize rescue nil
-    return if q.blank?
-    return if q.host.blank? || (! HOST_WHITELIST.include?(q.host))
-    return unless (q.scheme == 'http')
-    q
+  def normalize_query url
+    url = Addressable::URI.parse(url).normalize rescue nil
+    return if url.blank?
+    return if url.host.blank? || (! HOST_WHITELIST.include?(url.host))
+    return unless (url.scheme == 'http')
+    url
   end
 
   # Turn the raw params hash into actionable values.

@@ -57,14 +57,15 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  addressable (~> 2.2.5)
   bundler (~> 1.0.12)
   em-http-request!
   em-synchrony!
   eventmachine!
   gorillib (~> 0.0.5)
   jeweler (~> 1.5.2)
-  rack-abstract-format
-  rack-respond_to
+  rack-abstract-format (~> 0.9.9)
+  rack-respond_to (~> 0.9.8)
   rcov
   rspec (~> 2.5.0)
   spork (~> 0.9.0.rc5)
