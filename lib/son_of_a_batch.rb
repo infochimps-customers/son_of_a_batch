@@ -17,7 +17,7 @@ class BatchIterator < EM::Synchrony::Iterator
   include LogJammin
   attr_reader :requests, :responses
 
-  DEFAULT_CONCURRENCY = 15
+  DEFAULT_CONCURRENCY = 100
   HTTP_OPTIONS = { :connect_timeout => 1.0 }
 
   def initialize env, queries, options={}
@@ -29,7 +29,6 @@ class BatchIterator < EM::Synchrony::Iterator
     @http_options[:inactivity_timeout] = options[:timeout].to_f.clamp(2.0, 10.0)
     @http_options[:connect_timeout   ] = @http_options[:connect_timeout].clamp(nil, options[:timeout].to_f)
     @http_timeout = @http_options[:inactivity_timeout] + @http_options[:connect_timeout]
-    p [@http_options, @http_timeout]
     concurrency   = options[:concurrency] || DEFAULT_CONCURRENCY
 
     @results_back = {}
@@ -107,10 +106,10 @@ class JsonBatchIterator < BatchIterator
 
   def handle_result req_id, req
     super
-    key    = %Q{"#{req_id}":}
+    key    = JSON.generate(req_id.to_s)
     body   = JSON.generate(@results_back[req_id].slice(:status, :body))
     send( @seen_first_result ? "," : "") ; @seen_first_result = true
-    send key, body, false
+    send key, ":", body, false
   end
 
   def handle_error req_id, req

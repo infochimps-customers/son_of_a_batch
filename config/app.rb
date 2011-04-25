@@ -4,7 +4,7 @@
 # @config/son_of_a_batch-private.rb@ and enter your keys, etc.
 #
 
-import 'son_of_a_batch-private'
+import 'app-private'
 
 config[:app_name] = 'son_of_a_batch'
 
