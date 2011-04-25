@@ -2,15 +2,8 @@ $: << File.dirname(__FILE__)+'/../../lib'
 require 'boot'
 require 'goliath'
 require 'yajl/json_gem'
-
-Numeric.class_eval do
-  def clamp min=nil, max=nil
-    raise ArgumentError, "min must be <= max" if (min && max && (min > max))
-    return min if min && (self < min)
-    return max if max && (self > max)
-    self
-  end
-end
+require 'gorillib'
+require 'gorillib/numeric/clamp'
 
 #
 # Response takes 'delay' seconds to complete (default 2.5, max 15.0).
@@ -30,23 +23,10 @@ end
 #         Waiting:     1006 1293 168.8   1309    1576
 #         Total:       3011 3297 168.0   3313    3578
 #
-class SleepyStreaming < Goliath::API
+class Sleepy < Goliath::API
   use Goliath::Rack::Params             # parse query & body params
   use Goliath::Rack::Validation::NumericRange, {:key => 'delay',          :default => 2.5, :max => 15.0, :min => 0.0, :as => Float}
   use Goliath::Rack::Validation::NumericRange, {:key => '_initial_delay', :default => 0.0, :max => 10.0, :min => 0.0, :as => Float}
-
-  def logline env, *args
-    env.logger.debug [self.class, env[:start_time], env[:delay], env[:initial_delay], *args].flatten.join("\t")
-  end
-
-  def body(env)
-    JSON.generate({
-        :start            => env[:start_time].to_f,
-        :response_delay   => env[:response_delay],
-        :initial_delay    => env[:initial_delay],
-        :actual           => (Time.now.to_f - env[:start_time].to_f) }
-      )+"\n"
-  end
 
   def response(env)
     env[:initial_delay]  = env.params['_initial_delay']
@@ -68,5 +48,20 @@ class SleepyStreaming < Goliath::API
     logline env, "after setup"
     return chunked_streaming_response(200, {'X-Responder' => self.class.to_s,
       'X-Sleepy-Initial-Delay' => env[:initial_delay].to_s, 'X-Sleepy-Response-Delay' => env[:response_delay].to_s, })
+  end
+
+protected
+
+  def logline env, *args
+    env.logger.debug [self.class, env[:start_time], env[:delay], env[:initial_delay], *args].flatten.join("\t")
+  end
+
+  def body(env)
+    JSON.generate({
+        :start            => env[:start_time].to_f,
+        :response_delay   => env[:response_delay],
+        :initial_delay    => env[:initial_delay],
+        :actual           => (Time.now.to_f - env[:start_time].to_f) }
+      )+"\n"
   end
 end
