@@ -92,7 +92,7 @@ protected
       # assemble queries by slapping each url_val on the end of url_base
       url_vals = params['url_vals']
       url_vals = url_vals.to_s.split(',') unless url_vals.is_a?(Array) 
-      queries = {}.tap{|q| url_vals.each{|val| q[val.to_s] = "#{params['url_base']}#{val}" } }
+      queries = {}.tap{|q| url_vals.each_with_index{|val,idx| q[idx.to_s] = "#{params['url_base']}#{val}" } }
     else
       raise BadRequestError, "Need either url_base and url_vals, or a JSON post body giving a hash of req_id:url pairs."
     end

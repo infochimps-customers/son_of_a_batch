@@ -37,20 +37,20 @@ $ ruby ./app/endpoints/sob.rb -p 9004 -sv --config $PWD/config/app.rb
 Using the simple get batch (many params against one host)
 
 <pre>
-curl -v 'http://localhost:9004/batch.json?url_base=http%3A%2F%2Flocalhost%3A9002%2F%3Fdelay%3D&url_vals=1.0,2.3,1.3,4.0&_pretty=true&_show_stats=true&_timeout=1.9'
+curl -v 'http://localhost:9004/batch.json?url_base=http%3A%2F%2Flocalhost%3A9002%2F%3Fdelay%3D&url_vals=1.0,2.3,1.3,4.0&_pretty=true&_show_stats=true&_timeout=2.0'
 </pre>
 
 The JSON form of that:
 
 <pre>
-curl -v -H "Content-Type: application/json" --data-ascii '{ "_pretty":true, "_show_stats":true, "_timeout":1.9, "url_base":"http://localhost:9002/?delay=", "url_vals":"1.0,2.3,1.3,4.0" }' 'http://localhost:9004/batch.json'
+curl -v -H "Content-Type: application/json" --data-ascii '{ "_pretty":true, "_show_stats":true, "_timeout":2.0, "url_base":"http://localhost:9002/?delay=", "url_vals":"1.0,2.3,1.3,4.0" }' 'http://localhost:9004/batch.json'
 </pre>
 
 Arbitrary collection of URLs. Put your valid Infochimps API key on the @APIKEY=XXXXX@ line...
 
 <pre>
   APIKEY=XXXXX
-curl -v -H "Content-Type: application/json" --data-ascii '{"_pretty":true,"_show_stats":true,"_timeout":1.9,"urls":{
+curl -v -H "Content-Type: application/json" --data-ascii '{"_pretty":true,"_show_stats":true,"_timeout":2.0,"urls":{
     "food":"http://api.infochimps.com/social/network/tw/search/people_search?_apikey='$APIKEY'&q=food",
     "drink":"http://api.infochimps.com/social/network/tw/search/people_search?_apikey='$APIKEY'&q=drink",
     "sex":"http://api.infochimps.com/social/network/tw/search/people_search?_apikey='$APIKEY'&q=sex",
@@ -66,9 +66,25 @@ Commandline as an IDE FTW. The first request gets the user IDs for the 100 peopl
 screen_name=infochimps
 curl 'http://api.infochimps.com/social/network/tw/graph/strong_links?_apikey='$APIKEY'&screen_name='$screen_name > /tmp/strong_links_raw.txt
 cat /tmp/strong_links_raw.txt | ruby -rjson -e 'res = JSON.parse($stdin.read); puts res["strong_links"].map{|id,sc| id }.join(",") ' > /tmp/strong_links_ids.txt
-curl -H "Content-Type: application/json" --data-ascii '{ "_pretty":true, "_show_stats":true, "_timeout":1.9, "url_base":"http://api.infochimps.com/social/network/tw/influence/trstrank.json?_apikey='$APIKEY'&user_id=", "url_vals":"'`cat /tmp/strong_links_ids.txt`'" }' -v 'http://localhost:9004/batch.json'
+curl -H "Content-Type: application/json" --data-ascii '{ "_pretty":true, "_show_stats":true, "_timeout":2.0, "url_base":"http://api.infochimps.com/social/network/tw/influence/trstrank.json?_apikey='$APIKEY'&user_id=", "url_vals":"'`cat /tmp/strong_links_ids.txt`'" }' -v 'http://localhost:9004/batch.json'
 </pre>
 
+Here I'll make 30 simultaneous requests against son_of_a_batch, **each of them** making 30 concurrent requests against our sleepy_streaming server:
+
+<pre>
+ab -n30 -c30 'http://127.0.0.1:9004/batch.json?url_base=http%3A%2F%2Flocalhost%3A9002%2F%3Fdelay%3D&url_vals=1.0,2.3,1.3,4.0,1.0,2.3,1.3,4.0,1.0,2.3,1.3,4.0,1.0,2.3,1.3,4.0,1.0,2.3,1.3,4.0,1.0,2.3,1.3,4.0,1.0,2.3,1.3,4.0,3.2,2.8&_pretty=true&_show_stats=true&_timeout=2.0'
+</pre>
+
+The par response time should be around 3000ms; running on my laptop, son_of_a_batch served 30 inbound / 900 outbound *simultaneous* consumers with 4200ms response time (and minimal worst-case degradation):
+
+<pre>
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    1   0.2      1       1
+Processing:  4185 4194   4.6   4197    4197
+Waiting:      233  480 205.5    478     728
+Total:       4185 4194   4.8   4198    4198
+</pre>
 
 h3. Colophon
 
