@@ -1,14 +1,14 @@
 GIT
   remote: https://github.com/eventmachine/eventmachine.git
-  revision: 5398facee0279ae435cef6a69f9a1236ade4dc20
+  revision: 1107730c338892c8281a14b6b2e0802f8d715fb4
   specs:
-    eventmachine (1.0.0.beta.3)
+    eventmachine (1.0.0.beta.4)
 
 GIT
   remote: https://github.com/igrigorik/em-http-request.git
-  revision: b9c6b4b03f0b4d78f0826314dc1f39f297debc1d
+  revision: 1b4e646c65ad33b9a04e18f6bc0fa0c2e54e81f2
   specs:
-    em-http-request (1.0.0.beta.3)
+    em-http-request (1.0.0.beta.4)
       addressable (>= 2.2.3)
       em-socksify
       eventmachine (>= 1.0.0.beta.3)
@@ -16,7 +16,7 @@ GIT
 
 GIT
   remote: https://github.com/igrigorik/em-synchrony.git
-  revision: 60887014aa65bc8fb85bcd058c2b5bf938d72ad0
+  revision: 81af523ebad26a6cff2eb2842a4a1691c0c49374
   specs:
     em-synchrony (0.3.0.beta.1)
       eventmachine (>= 1.0.0.beta.1)
@@ -24,12 +24,12 @@ GIT
 GEM
   remote: http://rubygems.org/
   specs:
-    addressable (2.2.5)
+    addressable (2.2.6)
     diff-lcs (1.1.2)
     em-socksify (0.1.0)
       eventmachine
     git (1.2.5)
-    gorillib (0.0.5)
+    gorillib (0.0.8)
     http_parser.rb (0.5.1)
     jeweler (1.5.2)
       bundler (~> 1.0.0)
@@ -39,17 +39,17 @@ GEM
     rack-accept-media-types (0.9)
     rack-respond_to (0.9.8)
       rack-accept-media-types (>= 0.6)
-    rake (0.8.7)
+    rake (0.9.2)
     rcov (0.9.9)
     rspec (2.5.0)
       rspec-core (~> 2.5.0)
       rspec-expectations (~> 2.5.0)
       rspec-mocks (~> 2.5.0)
-    rspec-core (2.5.1)
+    rspec-core (2.5.2)
     rspec-expectations (2.5.0)
       diff-lcs (~> 1.1.2)
     rspec-mocks (2.5.0)
-    spork (0.9.0.rc5)
+    spork (0.9.0.rc9)
     yajl-ruby (0.8.2)
     yard (0.6.8)
 

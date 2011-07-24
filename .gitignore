@@ -53,3 +53,6 @@ vendor/bin
 vendor/goliath
 lib/goliath
 lib/goliath.rb
+
+.vendor
+.bundle
