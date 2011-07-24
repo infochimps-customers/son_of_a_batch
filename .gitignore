@@ -5,7 +5,7 @@ nohup.out
 .bak
 
 ## EDITORS
-#*
+\#*
 .#*
 *~
 *.swp
@@ -43,14 +43,15 @@ db/*.sqlite3
 log/*.log*
 tmp/**/*
 config/database.yml
+
+## PROJECT::SPECIFIC
+public/stylesheets/style.css
+public/stylesheets/handheld.css
 public/stylesheets/compiled/*
 public/system/*
-
-vendor/gems
-vendor/bin
-.bundle
 .sass-cache
-vendor/goliath
+
+# gitignor'ing these files which you may happen to link in rather than gem
 lib/goliath
 lib/goliath.rb
 
