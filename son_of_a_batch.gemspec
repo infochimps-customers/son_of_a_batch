@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Philip (flip) Kromer for Infochimps"]
-  s.date = %q{2011-04-23}
+  s.authors = [%q{Philip (flip) Kromer for Infochimps}]
+  s.date = %q{2011-07-25}
   s.description = %q{Smelt from a plentiferous gallimaufry of requests an agglomerated bale of responses. With, y'know, concurrency and all that.}
   s.email = %q{coders@infochimps.com}
   s.extra_rdoc_files = [
@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
     "README.textile"
   ]
   s.files = [
-    ".document",
+    ".gitignore",
     ".rspec",
     "Gemfile",
     "Gemfile.lock",
@@ -25,28 +25,34 @@ Gem::Specification.new do |s|
     "README.textile",
     "Rakefile",
     "VERSION",
-    "app/endpoints/sleepy.rb",
-    "app/views/debug.haml",
-    "app/views/layout.haml",
-    "app/views/root.haml",
-    "config/bootstrap.rb",
-    "config/son_of_a_batch-private.example.rb",
-    "config/son_of_a_batch-private.rb",
-    "config/son_of_a_batch.rb",
-    "lib/boot.rb",
+    "bin/son_of_a_batch.rb",
+    "foo/app.rb",
+    "foo/app/endpoints/sleepy.rb",
+    "foo/app/endpoints/sob.rb",
+    "foo/app/views/debug.haml",
+    "foo/app/views/joke.haml",
+    "foo/app/views/layout.haml",
+    "foo/app/views/root.haml",
+    "foo/config/app-private.example.rb",
+    "foo/config/app.rb",
+    "foo/config/bootstrap.rb",
+    "foo/lib/boot.rb",
+    "foo/lib/goliath.rb",
+    "foo/lib/son_of_a_batch/logjammin.rb",
+    "foo/public/stylesheets/style.css",
     "lib/son_of_a_batch.rb",
-    "public/stylesheets/style.css",
-    "son_of_a_batch.gemspec",
-    "son_of_a_batch.rb",
+    "spec/integration/infochimps_api_spec.rb",
     "spec/son_of_a_batch_spec.rb",
     "spec/spec_helper.rb"
   ]
   s.homepage = %q{http://infochimps.com/labs}
-  s.licenses = ["MIT"]
-  s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.5.0}
+  s.licenses = [%q{MIT}]
+  s.require_paths = [%q{lib}]
+  s.required_ruby_version = Gem::Requirement.new(">= 1.9.2")
+  s.rubygems_version = %q{1.8.5}
   s.summary = %q{Smelt from a plentiferous gallimaufry of requests an agglomerated bale of responses. With, y'know, concurrency and all that.}
   s.test_files = [
+    "spec/integration/infochimps_api_spec.rb",
     "spec/son_of_a_batch_spec.rb",
     "spec/spec_helper.rb"
   ]
@@ -55,42 +61,75 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<senor_armando>, ["~> 0.0.2"])
+      s.add_runtime_dependency(%q<yajl-ruby>, ["~> 0.8.2"])
+      s.add_runtime_dependency(%q<gorillib>, ["~> 0.1.1"])
+      s.add_runtime_dependency(%q<configliere>, ["~> 0.4.7"])
+      s.add_runtime_dependency(%q<postrank-uri>, ["~> 1.0.9"])
+      s.add_runtime_dependency(%q<goliath>, [">= 0"])
+      s.add_runtime_dependency(%q<eventmachine>, [">= 0"])
       s.add_runtime_dependency(%q<em-synchrony>, [">= 0"])
       s.add_runtime_dependency(%q<em-http-request>, [">= 0"])
-      s.add_runtime_dependency(%q<yajl-ruby>, ["~> 0.8.2"])
-      s.add_runtime_dependency(%q<gorillib>, ["~> 0.0.4"])
-      s.add_runtime_dependency(%q<rack-respond_to>, [">= 0"])
-      s.add_runtime_dependency(%q<rack-abstract-format>, [">= 0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.12"])
       s.add_development_dependency(%q<yard>, ["~> 0.6.7"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_development_dependency(%q<rspec>, ["~> 2.5.0"])
-      s.add_development_dependency(%q<rcov>, [">= 0"])
+      s.add_development_dependency(%q<rcov>, [">= 0.9.9"])
+      s.add_runtime_dependency(%q<senor_armando>, ["~> 0.0.2"])
+      s.add_development_dependency(%q<bundler>, ["~> 1.0.12"])
+      s.add_development_dependency(%q<yard>, ["~> 0.6.7"])
+      s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
+      s.add_development_dependency(%q<rspec>, ["~> 2.5.0"])
+      s.add_development_dependency(%q<rcov>, [">= 0.9.9"])
+      s.add_development_dependency(%q<spork>, ["~> 0.9.0.rc5"])
+      s.add_development_dependency(%q<watchr>, [">= 0"])
     else
+      s.add_dependency(%q<senor_armando>, ["~> 0.0.2"])
+      s.add_dependency(%q<yajl-ruby>, ["~> 0.8.2"])
+      s.add_dependency(%q<gorillib>, ["~> 0.1.1"])
+      s.add_dependency(%q<configliere>, ["~> 0.4.7"])
+      s.add_dependency(%q<postrank-uri>, ["~> 1.0.9"])
+      s.add_dependency(%q<goliath>, [">= 0"])
+      s.add_dependency(%q<eventmachine>, [">= 0"])
       s.add_dependency(%q<em-synchrony>, [">= 0"])
       s.add_dependency(%q<em-http-request>, [">= 0"])
-      s.add_dependency(%q<yajl-ruby>, ["~> 0.8.2"])
-      s.add_dependency(%q<gorillib>, ["~> 0.0.4"])
-      s.add_dependency(%q<rack-respond_to>, [">= 0"])
-      s.add_dependency(%q<rack-abstract-format>, [">= 0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.12"])
       s.add_dependency(%q<yard>, ["~> 0.6.7"])
       s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_dependency(%q<rspec>, ["~> 2.5.0"])
-      s.add_dependency(%q<rcov>, [">= 0"])
+      s.add_dependency(%q<rcov>, [">= 0.9.9"])
+      s.add_dependency(%q<senor_armando>, ["~> 0.0.2"])
+      s.add_dependency(%q<bundler>, ["~> 1.0.12"])
+      s.add_dependency(%q<yard>, ["~> 0.6.7"])
+      s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
+      s.add_dependency(%q<rspec>, ["~> 2.5.0"])
+      s.add_dependency(%q<rcov>, [">= 0.9.9"])
+      s.add_dependency(%q<spork>, ["~> 0.9.0.rc5"])
+      s.add_dependency(%q<watchr>, [">= 0"])
     end
   else
+    s.add_dependency(%q<senor_armando>, ["~> 0.0.2"])
+    s.add_dependency(%q<yajl-ruby>, ["~> 0.8.2"])
+    s.add_dependency(%q<gorillib>, ["~> 0.1.1"])
+    s.add_dependency(%q<configliere>, ["~> 0.4.7"])
+    s.add_dependency(%q<postrank-uri>, ["~> 1.0.9"])
+    s.add_dependency(%q<goliath>, [">= 0"])
+    s.add_dependency(%q<eventmachine>, [">= 0"])
     s.add_dependency(%q<em-synchrony>, [">= 0"])
     s.add_dependency(%q<em-http-request>, [">= 0"])
-    s.add_dependency(%q<yajl-ruby>, ["~> 0.8.2"])
-    s.add_dependency(%q<gorillib>, ["~> 0.0.4"])
-    s.add_dependency(%q<rack-respond_to>, [">= 0"])
-    s.add_dependency(%q<rack-abstract-format>, [">= 0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.12"])
     s.add_dependency(%q<yard>, ["~> 0.6.7"])
     s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
     s.add_dependency(%q<rspec>, ["~> 2.5.0"])
-    s.add_dependency(%q<rcov>, [">= 0"])
+    s.add_dependency(%q<rcov>, [">= 0.9.9"])
+    s.add_dependency(%q<senor_armando>, ["~> 0.0.2"])
+    s.add_dependency(%q<bundler>, ["~> 1.0.12"])
+    s.add_dependency(%q<yard>, ["~> 0.6.7"])
+    s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
+    s.add_dependency(%q<rspec>, ["~> 2.5.0"])
+    s.add_dependency(%q<rcov>, [">= 0.9.9"])
+    s.add_dependency(%q<spork>, ["~> 0.9.0.rc5"])
+    s.add_dependency(%q<watchr>, [">= 0"])
   end
 end
 

@@ -1,4 +1,13 @@
-if defined? RACK_ENV then true #pass
+module Goliath
+  ::Goliath::ROOT_DIR = File.expand_path(File.join(File.dirname($0), '..')) unless defined?(::Goliath::ROOT_DIR)
+  def self.root_path(*dirs)
+    File.join(::Goliath::ROOT_DIR, *dirs)
+  end
+end
+# $LOAD_PATH.unshift(Goliath.root_path("lib")) unless $LOAD_PATH.include?(Goliath.root_path("lib"))
+
+if defined? RACK_ENV
+  true #pass
 elsif (idx = (ARGV.index('-e') || ARGV.index('--environment')))
   RACK_ENV = { 'prod' => 'production', 'dev' => 'development', 'stag' => 'staging'}[ARGV[idx+1]] || ARGV[idx+1]
 else
@@ -6,19 +15,11 @@ else
 end
 ENV["RACK_ENV"] = RACK_ENV
 
-module Goliath
-  Goliath::ROOT_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..')) unless defined?(Goliath::ROOT_DIR)
-  def self.root_path *dirs
-    File.join(Goliath::ROOT_DIR, *dirs)
-  end
-end
-$LOAD_PATH.unshift(Goliath.root_path("lib")) unless $LOAD_PATH.include?(Goliath.root_path("lib"))
-$LOAD_PATH.unshift(Goliath.root_path("app")) unless $LOAD_PATH.include?(Goliath.root_path("app"))
 is_production = (!!ENV['GEM_STRICT']) || (RACK_ENV == 'production') || (RACK_ENV == 'staging')
 
 def try_or_exec_bootstrap try_bootstrap=true, &block
   if try_bootstrap && (not block.call)
-    cmd = Goliath.root_path("config/bootstrap.rb")
+    cmd = Goliath.root_path("bin/create_gemfile_jail.rb")
     warn "WARN The gem environment is out-of-date or has yet to be bootstrapped."
     warn "     Runnning '#{cmd} --local' to remedy this situation. "
     warn "     if you get an error about 'rake' or somesuch not installed, "
@@ -27,7 +28,7 @@ def try_or_exec_bootstrap try_bootstrap=true, &block
   end
   if not block.call
     warn "FAIL The gem environment is out-of-date. Run 'bundle install' explicitly and then retry"
-    fail "gem environment not configued"
+    fail "gem environment not configured"
   end
 end
 

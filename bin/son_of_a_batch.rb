@@ -1,17 +1,16 @@
 #!/usr/bin/env ruby
-$:<< './lib'
 
-require 'boot'
-require 'yajl/json_gem'
-require 'addressable/uri'
+module Goliath ; ROOT_DIR = File.expand_path(File.dirname(__FILE__)+'/..') ; end
+require File.join(File.dirname(__FILE__), '../lib/use_gemfile_jail')
+$LOAD_PATH.unshift(Goliath.root_path("lib")) unless $LOAD_PATH.include?(Goliath.root_path("lib"))
+
+require 'postrank-uri'
 require 'set'
-require 'goliath'
-require 'em-synchrony/em-http'
-require 'gorillib'
 require 'gorillib/numeric/clamp'
 require 'gorillib/hash/slice'
 
-require 'son_of_a_batch'
+require 'senor_armando'
+require 'son_of_a_batch/batch_iterator'
 
 require 'rack/mime'
 Rack::Mime::MIME_TYPES['.tsv'] = "text/tsv"
@@ -41,13 +40,14 @@ Rack::Mime::MIME_TYPES['.tsv'] = "text/tsv"
 #   cat /tmp/strong_links_raw.txt | ruby -rjson -e 'res = JSON.parse($stdin.read); puts res["strong_links"].map{|id,sc| id }.join(",") ' > /tmp/strong_links_ids.txt
 #   curl -H "Content-Type: application/json" --data-ascii '{ "_pretty":true, "_show_stats":true, "_timeout":1.9, "url_base":"http://api.infochimps.com/social/network/tw/influence/trstrank.json?_apikey='$APIKEY'&user_id=", "url_vals":"'`cat /tmp/strong_links_ids.txt`'" }' -v 'http://localhost:9004/batch.json'
 #
-class Sob < Goliath::API
-  use Goliath::Rack::ValidationError    # catch validation errors
-  use Goliath::Rack::Params             # parse query & body params
-  include Goliath::Validation
+class SonOfABatch < Goliath::API
+  use Goliath::Rack::Heartbeat             # respond to /status with 200, OK (monitoring, etc)
+  use Goliath::Rack::Tracer                # log trace statistics
+  use Goliath::Rack::Params                # parse & merge query and body parameters
+  use SenorArmando::Rack::ExceptionHandler # catch errors and present as non-200 responses
 
-  JsonBatchIterator.send(:include, SonOfABatch::LoggingIterator)
-  TsvBatchIterator.send(:include,  SonOfABatch::LoggingIterator)
+  # JsonBatchIterator.class_eval{ include SonOfABatch::LoggingIterator }
+  # TsvBatchIterator.class_eval{  include SonOfABatch::LoggingIterator }
 
   HOST_WHITELIST = %w[
     api.infochimps.com localhost 127.0.0.1
@@ -73,7 +73,7 @@ protected
   # make the given URL string safe.
   # TODO: be even more of a dick.
   def normalize_query url
-    url = Addressable::URI.parse(url).normalize rescue nil
+    url = PostRank::URI.normalize(url) rescue nil
     return if url.blank?
     return if url.host.blank? || (! HOST_WHITELIST.include?(url.host))
     return unless (url.scheme == 'http')
@@ -93,7 +93,7 @@ protected
     elsif params['url_base'] && params['url_vals']
       # assemble queries by slapping each url_val on the end of url_base
       url_vals = params['url_vals']
-      url_vals = url_vals.to_s.split(',') unless url_vals.is_a?(Array) 
+      url_vals = url_vals.to_s.split(',') unless url_vals.is_a?(Array)
       queries = {}.tap{|q| url_vals.each_with_index{|val,idx| q[idx.to_s] = "#{params['url_base']}#{val}" } }
     else
       raise BadRequestError, "Need either url_base and url_vals, or a JSON post body giving a hash of req_id:url pairs."
@@ -102,8 +102,7 @@ protected
     # make all the queries safe
     queries.each{|req_id, q| queries[req_id] = normalize_query(q) }
     queries.compact!
-    
+
     { :batch_id => batch_id, :sep => sep, :show_stats => show_stats, :timeout => timeout, :queries => queries, }.compact
   end
-  
 end

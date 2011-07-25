@@ -1,4 +1,4 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 SLEEPY_URL_BASE = "http://localhost:9002/meta/http/sleepy.json"
 SLEEPY_QUERIES = [ 1.0, 14.5, 5.0, 2.5, 4.0, 3.3, 3.0, 1.6 ].each_with_index.map{|delay, idx| [idx, "#{SLEEPY_URL_BASE}/?delay=#{delay}"] }

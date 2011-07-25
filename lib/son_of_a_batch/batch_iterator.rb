@@ -1,5 +1,3 @@
-require 'son_of_a_batch/logjammin'
-
 class BatchIterator < EM::Synchrony::Iterator
   attr_reader :requests, :responses
 

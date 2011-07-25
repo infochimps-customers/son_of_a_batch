@@ -7,24 +7,19 @@ Spork.prefork do
   ENV["RACK_ENV"] ||= 'test'
   RACK_ENV = ENV["RACK_ENV"] unless defined?(RACK_ENV)
 
-  require File.join(File.dirname(__FILE__), '../lib/boot')
-  $LOAD_PATH.unshift(File.dirname(__FILE__))
-
+  module Goliath ; ROOT_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..')) ; end
+  require File.join(File.dirname(__FILE__), '../lib/use_gemfile_jail')
+  require 'rspec'
   require 'goliath'
-  require 'em-synchrony'
   require 'goliath/test_helper'
-  require 'gorillib/hash/reverse_merge'
-
-  Settings ||= YAML.load(File.open(Goliath.root_path("config/macaque.yaml")))
+  require 'senor_armando/spec/he_help_me_test'
 
   # Requires custom matchers & macros, etc from files in ./support/ & subdirs
   Dir[Goliath.root_path("spec/support/**/*.rb")].each {|f| require f}
 
   # Configure rspec
   RSpec.configure do |config|
-    config.include Goliath::TestHelper, :example_group => {
-      :file_path => %r{spec/integration}
-    }
+    config.include Goliath::TestHelper, :example_group => { :file_path => %r{spec/integration} }
   end
 end
 
