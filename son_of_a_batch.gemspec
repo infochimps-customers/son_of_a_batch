@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.date = %q{2011-07-25}
   s.description = %q{Smelt from a plentiferous gallimaufry of requests an agglomerated bale of responses. With, y'know, concurrency and all that.}
   s.email = %q{coders@infochimps.com}
+  s.executables = [%q{son_of_a_batch.rb}]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.textile"
@@ -26,24 +27,14 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "bin/son_of_a_batch.rb",
-    "foo/app.rb",
-    "foo/app/endpoints/sleepy.rb",
-    "foo/app/endpoints/sob.rb",
-    "foo/app/views/debug.haml",
-    "foo/app/views/joke.haml",
-    "foo/app/views/layout.haml",
-    "foo/app/views/root.haml",
-    "foo/config/app-private.example.rb",
-    "foo/config/app.rb",
-    "foo/config/bootstrap.rb",
-    "foo/lib/boot.rb",
-    "foo/lib/goliath.rb",
-    "foo/lib/son_of_a_batch/logjammin.rb",
-    "foo/public/stylesheets/style.css",
-    "lib/son_of_a_batch.rb",
+    "lib/son_of_a_batch/batch_iterator.rb",
+    "lib/son_of_a_batch/logjammin.rb",
+    "lib/use_gemfile_jail.rb",
+    "son_of_a_batch.gemspec",
     "spec/integration/infochimps_api_spec.rb",
     "spec/son_of_a_batch_spec.rb",
-    "spec/spec_helper.rb"
+    "spec/spec_helper.rb",
+    "tmp/app.rb"
   ]
   s.homepage = %q{http://infochimps.com/labs}
   s.licenses = [%q{MIT}]
