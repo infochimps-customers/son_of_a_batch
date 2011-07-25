@@ -5,7 +5,7 @@ gem 'eventmachine',         :git => 'https://github.com/eventmachine/eventmachin
 gem 'em-synchrony',         :git => 'https://github.com/igrigorik/em-synchrony.git'
 gem 'em-http-request',      :git => 'https://github.com/igrigorik/em-http-request.git'
 gem 'yajl-ruby',            "~> 0.8.2"
-gem 'gorillib',             "~> 0.0.5"
+gem 'gorillib',             "~> 0.1.1"
 gem 'addressable',          "~> 2.2.5"
 gem 'rack-respond_to',      "~> 0.9.8"
 gem 'rack-abstract-format', "~> 0.9.9"
